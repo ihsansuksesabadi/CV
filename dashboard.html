@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgkxmjE5eVRlPo3BU2YJCg5gDd4tCsgaWWZ1YzmeycEmraU8K-o_04ekFOFHbYYj6Rl1ETsIo9E7BRvQbRClAEvu4xlwmmyiddkbqWkjN4ohc-z8HXkCpUfTgLe0eNJT-Cel3a8Tl2TKVEYfI_JW6oVNsVWpAwWIgK1R1FPao8-zR3TxwMT95I43i55_HM/s320/Picsart_25-11-20_14-16-19-838.png">
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --bg: #f4f6f9;
+  --card-bg: #fff;
+  --card-shadow: rgba(0,0,0,0.08);
+  --text-color: #333;
+  --accent: #FF6600;
+  --hover: #e65c00;
+  --table-hover: #fff4e6;
+}
+body.dark {
+  --bg: #1e1e2f;
+  --card-bg: #2a2a3b;
+  --card-shadow: rgba(0,0,0,0.3);
+  --text-color: #eee;
+  --accent: #ffa500;
+  --hover: #e69500;
+  --table-hover: #33334d;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  margin:0; padding:20px;
+  background: var(--bg);
+  color: var(--text-color);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Header */
+.header {
+  text-align:center; margin-bottom:20px;
+}
+.logo-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+.header-logo {
+  width: 120px;  /* diperbesar */
+  height: auto;
+  transition: transform 0.3s ease;
+}
+.header-logo:hover {
+  transform: scale(1.2) rotate(5deg);
+}
+.header h1 {color: var(--accent);}
+.header p {color: var(--text-color);}
+
+/* Dark Mode Toggle */
+.dark-toggle {
+  position: fixed;
+  top: 20px; right: 20px;
+  padding:10px 16px;
+  background: var(--accent);
+  color:white;
+  border:none; border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  transition: background 0.3s, transform 0.2s;
+}
+.dark-toggle:hover { background: var(--hover); transform: scale(1.05); }
+
+/* Dashboard Cards */
+.dashboard-card { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px; }
+.card {
+  flex:1; min-width:220px; padding:20px;
+  background: var(--card-bg);
+  border-radius:14px;
+  box-shadow: 0 8px 25px var(--card-shadow);
+  text-align:center;
+  position: relative; overflow:hidden;
+  transition: background 0.3s, color 0.3s, transform 0.3s;
+}
+.card:hover { transform: translateY(-5px); }
+.card h2 {
+  color: var(--accent); display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.card p { font-size:28px; font-weight:600; margin-top:10px; transition: all 0.5s; }
+
+/* Filter */
+.filter-box {
+  background: var(--card-bg);
+  padding:15px; border-radius:10px;
+  box-shadow:0 4px 12px var(--card-shadow);
+  margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+}
+.filter-box label { font-weight:500; }
+.filter-box input {
+  padding:8px 12px; border-radius:6px;
+  border:1px solid #ccc; font-size:14px; transition:border 0.3s;
+}
+.filter-box input:focus { border-color: var(--accent); outline:none; }
+.filter-box button {
+  padding:8px 16px; background: var(--accent); color:white;
+  border:none; border-radius:6px; cursor:pointer; font-size:14px; transition: background 0.3s;
+}
+.filter-box button:hover { background: var(--hover); }
+
+/* Table */
+.table-container { overflow-x:auto; border-radius:12px; box-shadow:0 4px 15px var(--card-shadow);}
+table { width:100%; border-collapse:collapse; min-width:700px; transition: color 0.3s, background 0.3s; }
+th { background: var(--accent); color:white; padding:12px; text-align:left; cursor:pointer; user-select:none; transition: background 0.3s; }
+th:hover { background: var(--hover); }
+td { padding:12px; border-bottom:1px solid #eee; }
+tr:hover { background: var(--table-hover); }
+
+/* Print Button */
+.print-btn { padding:6px 14px; background:var(--accent); color:white; border:none; border-radius:6px; cursor:pointer; font-size:14px; transition:background 0.3s; }
+.print-btn:hover{background:var(--hover);}
+
+/* Loader */
+.loader { text-align:center; font-size:18px; color: var(--accent); margin:50px 0; }
+
+/* Count Up Animation */
+.count-up { transition: all 0.8s; }
+</style>
+</head>
+<body>
+
+<button class="dark-toggle" onclick="toggleDark()">🌙 Dark Mode</button>
+
+<div class="header logo-header">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgkxmjE5eVRlPo3BU2YJCg5gDd4tCsgaWWZ1YzmeycEmraU8K-o_04ekFOFHbYYj6Rl1ETsIo9E7BRvQbRClAEvu4xlwmmyiddkbqWkjN4ohc-z8HXkCpUfTgLe0eNJT-Cel3a8Tl2TKVEYfI_JW6oVNsVWpAwWIgK1R1FPao8-zR3TxwMT95I43i55_HM/s320/Picsart_25-11-20_14-16-19-838.png" alt="Logo" class="header-logo">
+  <div>
+    <h1>Dashboard Admin</h1>
+    <p>CV. Irshan Sukses Abadi</p>
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <div class="card">
+    <h2>📦 Total Pesanan</h2>
+    <p id="totalOrders" class="count-up">0</p>
+  </div>
+  <div class="card">
+    <h2>💰 Total Pendapatan</h2>
+    <p id="totalRevenue" class="count-up">Rp0</p>
+  </div>
+</div>
+
+<div class="filter-box">
+  <label>Dari:</label><input type="date" id="dateStart">
+  <label>Sampai:</label><input type="date" id="dateEnd">
+  <button onclick="applyDateFilter()">Filter</button>
+  <button onclick="resetFilter()">Reset</button>
+  <button onclick="downloadExcel()">Download Excel</button>
+</div>
+
+<div class="table-container">
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th data-key="No.Pesanan">No. Pesanan</th>
+        <th data-key="Waktu Pemesanan">Waktu Pemesanan</th>
+        <th data-key="Nama Pemesan">Nama Pemesan</th>
+        <th data-key="Nomor Whatsapp">Nomor WhatsApp</th>
+        <th>Item</th>
+        <th data-key="Total Harga">Total Harga</th>
+        <th data-key="Catatan">Catatan</th>
+        <th>Print</th>
+      </tr>
+    </thead>
+    <tbody id="sheetData"><tr><td colspan="8" class="loader">Memuat data...</td></tr></tbody>
+  </table>
+</div>
+
+<script>
+// --- Script sama seperti sebelumnya ---
+let globalData=[], filteredData=[], sortState={};
+
+function toggleDark(){document.body.classList.toggle('dark');}
+
+function formatRupiah(h){return "Rp"+(parseInt(h.toString().replace(/[^0-9]/g,"")||0)).toLocaleString("id-ID");}
+function parseDate(str){if(!str)return 0; const [d,m,y]=str.split(" ")[0].split("/"); const time=str.split(" ")[1]||"00:00:00"; return new Date(`${y}-${m}-${d} ${time}`).getTime();}
+
+async function loadSheet(){
+  const SHEET_ID="1iucza94EjjC1OfuVPMfg6iMeW0PLhDPinbMVf6BjFNU";
+  const url=`https://opensheet.elk.sh/${SHEET_ID}/admin`;
+  try{
+    const resp=await fetch(url);
+    globalData=await resp.json();
+    globalData.sort((a,b)=>parseDate(b["Waktu Pemesanan"])-parseDate(a["Waktu Pemesanan"]));
+    filteredData=[...globalData];
+    renderTable(filteredData); calculateSummary(filteredData);
+  }catch(e){
+    document.getElementById("sheetData").innerHTML='<tr><td colspan="8" style="text-align:center;color:red">Gagal memuat data!</td></tr>';
+    console.error(e);
+  }
+}
+
+function renderTable(data){
+  const tbody=document.getElementById("sheetData"); tbody.innerHTML="";
+  if(data.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center">Data tidak ditemukan</td></tr>'; return;}
+  const frag=document.createDocumentFragment();
+  data.forEach(row=>{
+    const items=(row["Daftar Pesanan"]||"").split(/\r?\n|,/).filter(i=>i.trim()!=="");
+    items.forEach((item,idx)=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`
+        <td>${idx===0?row["No.Pesanan"]:""}</td>
+        <td>${idx===0?row["Waktu Pemesanan"]:""}</td>
+        <td>${idx===0?row["Nama Pemesan"]:""}</td>
+        <td>${idx===0?row["Nomor Whatsapp"]:""}</td>
+        <td>${item.trim()}</td>
+        <td>${idx===0?row["Total Harga"]:""}</td>
+        <td>${idx===0?row["Catatan"]:""}</td>
+        <td>${idx===0?`<button class="print-btn" onclick='printOrder(${JSON.stringify(row)})'>Print</button>`:""}</td>`;
+      frag.appendChild(tr);
+    });
+  });
+  tbody.appendChild(frag);
+}
+
+function calculateSummary(data){
+  const totalOrders=data.length;
+  let totalRevenue=0; data.forEach(r=>{let h=r["Total Harga"]?r["Total Harga"].replace(/[^0-9]/g,""):"0"; totalRevenue+=parseInt(h)||0;});
+  animateValue("totalOrders",0,totalOrders,800);
+  animateValue("totalRevenue",0,totalRevenue,800,true);
+}
+
+function animateValue(id,start,end,duration,isRupiah=false){
+  const el=document.getElementById(id);
+  let startTime=null;
+  function step(timestamp){
+    if(!startTime) startTime=timestamp;
+    const progress=Math.min((timestamp-startTime)/duration,1);
+    const value=Math.floor(progress*(end-start));
+    el.textContent=isRupiah?formatRupiah(value):value;
+    if(progress<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function applyDateFilter(){
+  const start=document.getElementById("dateStart").value;
+  const end=document.getElementById("dateEnd").value;
+  const startTime=start?new Date(start+" 00:00:00").getTime():0;
+  const endTime=end?new Date(end+" 23:59:59").getTime():Infinity;
+  filteredData=globalData.filter(r=>{const t=parseDate(r["Waktu Pemesanan"]); return t>=startTime&&t<=endTime;});
+  renderTable(filteredData); calculateSummary(filteredData);
+}
+function resetFilter(){document.getElementById("dateStart").value=""; document.getElementById("dateEnd").value=""; filteredData=[...globalData]; renderTable(filteredData); calculateSummary(filteredData);}
+
+function sortByColumn(key){const dir=sortState[key]?1:-1; sortState[key]=!sortState[key];
+filteredData.sort((a,b)=>{let vA=a[key]||"",vB=b[key]||""; if(key==="Waktu Pemesanan")return dir*(parseDate(vA)-parseDate(vB)); if(key==="Total Harga")return dir*((parseInt(vA.replace(/\D/g,''))||0)-(parseInt(vB.replace(/\D/g,''))||0)); return dir*vA.localeCompare(vB);});
+renderTable(filteredData);
+}
+
+function downloadExcel(){if(filteredData.length===0){alert("Tidak ada data!"); return;}
+const ws_data=[["No. Pesanan","Waktu Pemesanan","Nama Pemesan","Nomor WhatsApp","Daftar Pesanan","Total Harga","Catatan"]];
+filteredData.forEach(r=>ws_data.push([r["No.Pesanan"]||"",r["Waktu Pemesanan"]||"",r["Nama Pemesan"]||"",r["Nomor Whatsapp"]||"",r["Daftar Pesanan"]||"",r["Total Harga"]||"",r["Catatan"]||""]));
+const wb=XLSX.utils.book_new(), ws=XLSX.utils.aoa_to_sheet(ws_data); XLSX.utils.book_append_sheet(wb,ws,"Data Penjualan"); XLSX.writeFile(wb,"data_penjualan.xlsx");
+}
+
+function printOrder(order){
+  if(!order)return; const win=window.open('','', 'width=800,height=600');
+  const items=(order["Daftar Pesanan"]||"").split(/\r?\n|,/).filter(i=>i.trim()!=="");
+  const total=formatRupiah(order["Total Harga"]);
+  win.document.write(`<html><head><title>Invoice #${order["No.Pesanan"]||"-"}</title><style>
+    body{font-family:'Poppins',sans-serif;padding:20px;color:#333;} body.dark{color:#eee;}
+    .header{display:flex;justify-content:space-between;} h2{color:#FF6600;margin-bottom:5px;}
+    table{width:100%;border-collapse:collapse;margin-top:20px;} th,td{border:1px solid #ccc;padding:10px;text-align:left;}
+    th{background:#FF6600;color:white;} tr:nth-child(even){background:#f9f9f9;}
+    .total{text-align:right;font-weight:bold;margin-top:10px;font-size:16px;} .notes{margin-top:20px;font-style:italic;}
+    .footer{margin-top:40px;font-size:12px;color:#777;border-top:1px solid #ccc;padding-top:10px;}
+  </style></head><body>
+  <div class="header"><div><h2>Invoice #${order["No.Pesanan"]||"-"}</h2>
+  <p><strong>Waktu:</strong> ${order["Waktu Pemesanan"]||"-"}</p>
+  <p><strong>Nama:</strong> ${order["Nama Pemesan"]||"-"}</p>
+  <p><strong>WA:</strong> ${order["Nomor Whatsapp"]||"-"}</p></div>
+  <div><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgkxmjE5eVRlPo3BU2YJCg5gDd4tCsgaWWZ1YzmeycEmraU8K-o_04ekFOFHbYYj6Rl1ETsIo9E7BRvQbRClAEvu4xlwmmyiddkbqWkjN4ohc-z8HXkCpUfTgLe0eNJT-Cel3a8Tl2TKVEYfI_JW6oVNsVWpAwWIgK1R1FPao8-zR3TxwMT95I43i55_HM/s320/Picsart_25-11-20_14-16-19-838.png" alt="Logo" height="60"></div></div>
+  <table><thead><tr><th>No</th><th>Item</th></tr></thead>
+  <tbody>${items.map((i,idx)=>`<tr><td>${idx+1}</td><td>${i.trim()}</td></tr>`).join('')}</tbody></table>
+  <p class="total">Total Harga: ${total}</p><p class="notes">Catatan: ${order["Catatan"]||"-"}</p>
+  <div class="footer"><p>CV. Irshan Sukses Abadi</p><p>Alamat: Jalan Medan - Banda Aceh - Idi - Aceh Timur</p><p>Telepon/WA: 0852-6060-1214 | Email: info@irshansukses.com</p></div>
+  </body></html>`); win.document.close(); win.print();
+}
+
+document.querySelectorAll("th").forEach(th=>{if(th.dataset.key) th.addEventListener("click",()=>sortByColumn(th.dataset.key));});
+
+loadSheet();
+</script>
+</body>
+</html>
